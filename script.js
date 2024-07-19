@@ -1,54 +1,50 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const startButton = document.getElementById("startButton");
-    const target = document.getElementById("target");
-    const scoreElement = document.getElementById("score");
-    const timeElement = document.getElementById("time");
-    let score = 0;
-    let time = 10;
-    let gameInterval;
-    let timerInterval;
+const cells = document.querySelectorAll('.cell');
+const message = document.getElementById('message');
+let currentPlayer = 'X';
+let gameBoard = ['', '', '', '', '', '', '', '', ''];
+let isGameOver = false;
 
-    startButton.addEventListener("click", () => {
-        score = 0;
-        time = 10;
-        scoreElement.textContent = score;
-        timeElement.textContent = time;
-        startButton.style.display = "none";
-        target.style.display = "block";
-        moveTarget();
-        gameInterval = setInterval(moveTarget, 1000); // เปลี่ยนตำแหน่งเป้าหมายทุกๆ 1 วินาที
-        timerInterval = setInterval(updateTimer, 1000); // อัปเดตเวลาแต่ละวินาที
-    });
+cells.forEach(cell => cell.addEventListener('click', handleCellClick));
 
-    target.addEventListener("click", () => {
-        score += 1;
-        scoreElement.textContent = score;
-        moveTarget();
-    });
+function handleCellClick(event) {
+    const index = event.target.getAttribute('data-index');
 
-    function moveTarget() {
-        const containerWidth = document.querySelector('.game-container').clientWidth;
-        const containerHeight = document.querySelector('.game-container').clientHeight;
-        const targetSize = 50; // ขนาดของเป้าหมาย
-        const maxX = containerWidth - targetSize;
-        const maxY = containerHeight - targetSize;
-
-        const randomX = Math.floor(Math.random() * maxX);
-        const randomY = Math.floor(Math.random() * maxY);
-
-        target.style.left = `${randomX}px`;
-        target.style.top = `${randomY}px`;
-    }
-
-    function updateTimer() {
-        time -= 1;
-        timeElement.textContent = time;
-        if (time <= 0) {
-            clearInterval(gameInterval);
-            clearInterval(timerInterval);
-            target.style.display = "none";
-            startButton.style.display = "block";
-            alert(`Game over! Your score is ${score}`);
+    if (gameBoard[index] === '' && !isGameOver) {
+        gameBoard[index] = currentPlayer;
+        event.target.textContent = currentPlayer;
+        if (checkWin(currentPlayer)) {
+            message.textContent = `${currentPlayer} wins!`;
+            isGameOver = true;
+        } else if (gameBoard.every(cell => cell !== '')) {
+            message.textContent = 'It\'s a draw!';
+            isGameOver = true;
+        } else {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
         }
     }
-});
+}
+
+function checkWin(player) {
+    const winningCombinations = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+
+    return winningCombinations.some(combination => {
+        return combination.every(index => gameBoard[index] === player);
+    });
+}
+
+function resetGame() {
+    gameBoard = ['', '', '', '', '', '', '', '', ''];
+    cells.forEach(cell => cell.textContent = '');
+    currentPlayer = 'X';
+    message.textContent = '';
+    isGameOver = false;
+}
